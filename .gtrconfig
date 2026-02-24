@@ -4,7 +4,7 @@
 
 [hooks]
     postCreate = mise trust && mise install && pnpm i
-    postCd = source .bashrc
+    postCd = source ~/.bashrc
 
 [defaults]
     editor = zed
