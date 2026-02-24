@@ -18,7 +18,7 @@
       "env": {}
     },
     "deepwiki": {
-      "type": "sse",
+      "type": "http",
       "url": "https://mcp.deepwiki.com/mcp",
       "env": {}
     },
