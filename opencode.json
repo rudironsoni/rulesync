@@ -1,7 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "lsp": false,
-  "model": "openai-codex/gpt-5.3-codex",
+  "model": "github-copilot/gpt-5.2-codex",
   "agent": {
     "build": {
       "mode": "primary",
