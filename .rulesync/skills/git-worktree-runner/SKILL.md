@@ -5,9 +5,10 @@ description: >-
   to create, list, remove, or navigate worktrees with `git gtr` commands, open
   editors or AI tools in worktrees, or manage parallel development branches.
 targets:
-  - '*'
-allowed-tools: 'Bash(git-worktree-runner:*)'
+  - "*"
+allowed-tools: "Bash(git-worktree-runner:*)"
 ---
+
 # Git Worktree Runner (gtr)
 
 git-worktree-runner (gtr) is a CLI tool that wraps `git worktree` with quality-of-life features for modern development workflows including editor and AI tool integration.
