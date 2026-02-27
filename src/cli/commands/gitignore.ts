@@ -66,6 +66,7 @@ const RULESYNC_IGNORE_ENTRIES = [
   "**/.github/prompts/",
   "**/.github/agents/",
   "**/.github/skills/",
+  "**/.github/hooks/",
   "**/.vscode/mcp.json",
   // Junie
   "**/.junie/guidelines.md",
