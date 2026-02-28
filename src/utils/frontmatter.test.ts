@@ -1,6 +1,34 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { parseFrontmatter, stringifyFrontmatter } from "./frontmatter.js";
+
+// Hoisted mock for gray-matter - used by specific tests
+const mockMatter = vi.hoisted(() => ({
+  shouldThrow: false,
+  errorMessage: "YAML parse error from mock",
+}));
+
+vi.mock("gray-matter", async () => {
+  const actualModule = await vi.importActual<typeof import("gray-matter")>("gray-matter");
+  // gray-matter is a CommonJS module that exports a function directly
+  // vi.importActual returns the module object, but with esModuleInterop, the function is on .default
+  const actualFn =
+    (actualModule as unknown as { default: typeof actualModule }).default || actualModule;
+
+  const mockedMatter = vi.fn((...args: Parameters<typeof actualFn>) => {
+    if (mockMatter.shouldThrow) {
+      throw new Error(mockMatter.errorMessage);
+    }
+    return actualFn(...args);
+  });
+  // Copy over all properties from the original module
+  const mockedModule = Object.assign(mockedMatter, {
+    stringify: actualModule.stringify,
+    test: actualModule.test,
+    language: actualModule.language,
+  });
+  return { default: mockedModule };
+});
 
 describe("frontmatter utilities", () => {
   describe("stringifyFrontmatter", () => {
@@ -322,15 +350,25 @@ const code = "preserved";
     });
 
     it("should re-throw original error when no file path provided", () => {
-      const content = "---\na: {\n---\nbody";
+      // Configure mock to throw deterministically
+      mockMatter.shouldThrow = true;
+      mockMatter.errorMessage = "YAML parse error from mock";
+
+      const content = "any content";
+
+      // Must throw an error - test fails if no error is thrown
+      expect(() => parseFrontmatter(content)).toThrow();
+
+      // Verify the error is re-thrown without file path wrapping
       try {
         parseFrontmatter(content);
-        // If gray-matter doesn't throw, the test still passes
-        // (behavior varies by gray-matter version/environment)
       } catch (error) {
-        // Original error should be re-thrown without wrapping
         expect((error as Error).message).not.toMatch(/Failed to parse frontmatter in/);
+        expect((error as Error).message).toBe("YAML parse error from mock");
       }
+
+      // Reset mock
+      mockMatter.shouldThrow = false;
     });
   });
 });
