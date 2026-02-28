@@ -365,6 +365,51 @@ describe("CopilotHooks", () => {
       expect(parsed.hooks.sessionStart[0].powershell).toBe("run.ps1");
       expect(parsed.hooks.sessionStart[0].customKey).toBe(123);
     });
+
+    it("should filter out canonical fields including loop_limit", async () => {
+      const config = {
+        version: 1,
+        hooks: {
+          sessionStart: [
+            {
+              type: "command",
+              command: "run.sh",
+              loop_limit: 5,
+              timeout: 10,
+              unknownKey: "keep",
+            },
+          ],
+        },
+      };
+      const rulesyncHooks = new RulesyncHooks({
+        baseDir: testDir,
+        relativeDirPath: RULESYNC_RELATIVE_DIR_PATH,
+        relativeFilePath: "hooks.json",
+        fileContent: JSON.stringify(config),
+        validate: false,
+      });
+
+      const copilotHooks = await CopilotHooks.fromRulesyncHooks({
+        baseDir: testDir,
+        rulesyncHooks,
+        validate: false,
+      });
+
+      const content = copilotHooks.getFileContent();
+      const parsed = JSON.parse(content);
+
+      const entry = parsed.hooks.sessionStart[0];
+      expect(entry.type).toBe("command");
+      expect(entry.bash).toBe("run.sh");
+      expect(entry.timeoutSec).toBe(10);
+      expect(entry.unknownKey).toBe("keep");
+
+      expect(entry.command).toBeUndefined();
+      expect(entry.timeout).toBeUndefined();
+      expect(entry.prompt).toBeUndefined();
+      expect(entry.matcher).toBeUndefined();
+      expect(entry.loop_limit).toBeUndefined();
+    });
   });
 
   describe("toRulesyncHooks", () => {

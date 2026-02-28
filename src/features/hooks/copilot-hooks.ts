@@ -9,6 +9,7 @@ import {
   COPILOT_TO_CANONICAL_EVENT_NAMES,
   CANONICAL_TO_COPILOT_EVENT_NAMES,
   COPILOT_HOOK_EVENTS,
+  HookDefinitionSchema,
 } from "../../types/hooks.js";
 import { formatError } from "../../utils/error.js";
 import { readFileContentOrNull } from "../../utils/file.js";
@@ -45,6 +46,7 @@ type CopilotHookEntry = z.infer<typeof CopilotHookEntrySchema>;
  * on all other platforms it is emitted under `bash`.
  */
 function canonicalToCopilotHooks(config: HooksConfig): Record<string, CopilotHookEntry[]> {
+  const canonicalSchemaKeys = Object.keys(HookDefinitionSchema.shape);
   const isWindows = process.platform === "win32";
   const commandField = isWindows ? "powershell" : "bash";
   const supported: Set<string> = new Set(COPILOT_HOOK_EVENTS);
@@ -73,9 +75,7 @@ function canonicalToCopilotHooks(config: HooksConfig): Record<string, CopilotHoo
       const timeout = def.timeout;
 
       const rest = Object.fromEntries(
-        Object.entries(def).filter(
-          ([k]) => !["type", "matcher", "command", "prompt", "timeout"].includes(k),
-        ),
+        Object.entries(def).filter(([k]) => !canonicalSchemaKeys.includes(k)),
       );
 
       entries.push({
@@ -140,6 +140,7 @@ function copilotHooksToCanonical(copilotHooks: unknown): HooksConfig["hooks"] {
       const entry = parseResult.data;
       const command = resolveImportCommand(entry);
       const timeout = entry.timeoutSec;
+
       defs.push({
         type: "command",
         ...(command !== undefined && { command }),
